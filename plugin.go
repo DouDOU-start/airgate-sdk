@@ -29,8 +29,8 @@ const (
 
 // PluginInfo 插件元信息
 type PluginInfo struct {
-	ID               string            `json:"id"`                // 唯一标识，如 "gateway-claude"
-	Name             string            `json:"name"`              // 显示名称
+	ID               string            `json:"id"`                // 运行时唯一标识（canonical plugin name），Core 用于 API / 资源路径 / 动态加载
+	Name             string            `json:"name"`              // 展示名称（display name），仅用于 UI 展示
 	Version          string            `json:"version"`           // 语义化版本
 	Description      string            `json:"description"`       // 简要描述
 	Author           string            `json:"author"`            // 作者

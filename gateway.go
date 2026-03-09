@@ -11,7 +11,8 @@ import (
 // 插件只需实现请求转换和响应解析
 type SimpleGatewayPlugin interface {
 	Plugin
-	// Platform 返回平台标识（如 "claude"），与 accounts.platform 对应
+	// Platform 返回业务平台标识（如 "claude"），与 accounts.platform 对应
+	// 注意：Platform 与 PluginInfo.ID 不同，前者是业务键，后者是插件运行时唯一键
 	Platform() string
 	// Models 返回支持的模型列表（含价格信息，核心用于计费）
 	Models() []ModelInfo
@@ -25,7 +26,8 @@ type SimpleGatewayPlugin interface {
 // 插件完全控制调度和转发逻辑，通过 CoreServices 访问核心能力
 type AdvancedGatewayPlugin interface {
 	Plugin
-	// Platform 返回平台标识
+	// Platform 返回业务平台标识
+	// 注意：Platform 与 PluginInfo.ID 不同，前者是业务键，后者是插件运行时唯一键
 	Platform() string
 	// Models 返回支持的模型列表
 	Models() []ModelInfo
