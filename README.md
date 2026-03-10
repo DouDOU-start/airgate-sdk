@@ -53,7 +53,8 @@ Core 通过 [hashicorp/go-plugin](https://github.com/hashicorp/go-plugin) 以独
 │  账号调度（负载均衡、选号）     │     │  声明支持的模型（Models）      │
 │  路由注册（HTTP 网关、鉴权）   │     │  声明 API 端点（Routes）       │
 │  计费、限流、并发控制          │     │  转发请求到上游（Forward）      │
-│                               │     │  返回 token 用量（Result）     │
+│  凭证验证调度（添加账号时）    │     │  验证账号凭证（ValidateAccount）│
+│  WebSocket 升级转发           │     │  WebSocket 通信（可选）        │
 └───────────────────────────────┘     └───────────────────────────────┘
          通用平台能力                        上游 API 适配器
 ```
@@ -103,8 +104,8 @@ type Account struct {
 
 - **SDK Account 最小化** — 插件只需"用什么凭证调上游"，调度和计费参数全部留在 Core
 - **Core 表可自由扩展** — Core 的 accounts 表字段远多于 SDK Account，前端页面直接查库渲染完整数据
-- **`type` 驱动凭证解析** — 插件通过 `AccountTypes` 声明凭证模式，Core 存储时带上 `type`，插件 Forward 时据此解析 `credentials`
-- **插件 Widget 按需注入** — 运行时字段（过期时间、限流状态等）需要自定义展示时，Core 作为 props 传给插件的 Widget 组件
+- **`type` 驱动凭证解析** — 插件通过 `AccountTypes` 声明支持的账号类型，Core 存储时带上 `type`，插件 Forward 时据此解析 `credentials`
+- **插件 Widget 负责渲染** — 账号管理 UI（表单、详情）统一由插件 Widget 提供，Core 不感知不同插件的账号字段差异
 
 ### 关键标识
 
@@ -174,8 +175,6 @@ Core 自动处理的能力：
 | --- | --- | --- |
 | `WebAssetsProvider` | 提供前端静态资源 | 自定义管理页面、嵌入组件 |
 | `ConfigWatcher` | 配置热更新 | 不重启改配置 |
-
-> OAuth 授权是"添加账号"的一种方式，在插件的账号表单 Widget 中实现，不需要独立接口。
 
 ## 快速开始：网关插件
 
@@ -306,14 +305,15 @@ FrontendWidgets: []sdk.FrontendWidget{
 },
 ```
 
-**与声明式字段的关系**：简单插件只用 `AccountTypes` + `CredentialFields`，Core 即可自动渲染表单。当插件需要超出简单表单的自定义 UI（OAuth 授权按钮、用量图表等）时，用 Widget 覆盖默认渲染：
+**Core 不做任何账号表单的默认渲染**，所有插件的账号管理 UI（添加表单、详情展示）统一由插件 Widget 提供。Core 只负责在对应插槽位置加载 Widget 组件：
 
 ```text
 渲染账号管理页
-  → 插件声明了对应 Slot 的 Widget？
-    → 是 → 动态加载 EntryFile 指向的 JS 组件
-    → 否 → 用 CredentialFields 声明式默认渲染
+  → 根据当前插件，加载其声明的 Slot Widget
+  → Widget 内部自行处理表单、OAuth 授权等交互逻辑
 ```
+
+> `AccountTypes` 是元数据声明（告诉 Core 这个插件支持哪些账号类型的 key 和 label），用于筛选和列表展示，不用于渲染表单。
 
 ### 静态资源
 
@@ -358,8 +358,7 @@ airgate-sdk/
 ├── models.go          # 共享类型：Account, ModelInfo, ForwardRequest/Result 等
 ├── config.go          # PluginConfig 配置读取接口
 ├── extension.go       # ExtensionPlugin 接口
-├── oauth.go           # OAuthHandler 接口
-├── websocket.go       # WebSocketHandler / WebSocketConn
+├── websocket.go       # WebSocketConn 类型定义
 ├── grpc/              # gRPC 桥接层（go-plugin 适配）
 │   ├── go_plugin.go   # Serve() 入口
 │   ├── common.go      # pluginBase 公共基类
@@ -417,15 +416,17 @@ account_types:
         label: API Key
         type: password
         required: true
+      - key: base_url
+        label: API 地址
+        type: text
 ```
 
 ### 打包格式
 
 ```text
 my-plugin.tar.gz
-├── my-plugin           # 插件二进制
-├── plugin.yaml         # 分发元信息
-└── web/                # 可选：前端资源
+├── my-plugin           # 插件二进制（前端资源已通过 go:embed 打入）
+└── plugin.yaml         # 分发元信息
 ```
 
 ### 发布检查清单
@@ -458,11 +459,18 @@ Core 启动插件后的消费流程：
   → Routes()    获取路由声明（注册到 HTTP 网关）
   → GetWebAssets()  提取前端资源（如有）
 
-请求到达时：
+添加/导入账号时：
+  → ValidateAccount(ctx, credentials)  调用插件验证凭证有效性
+
+HTTP 请求到达时：
   → Core 鉴权、限流
   → Core 调度账号
   → Forward(ctx, req)  调用插件转发
   → Core 记录用量（基于 ForwardResult）
+
+WebSocket 升级请求时：
+  → Core 鉴权、调度账号
+  → HandleWebSocket(ctx, conn)  交给插件处理双向通信
 ```
 
 Core 必须遵守的约定：
@@ -470,7 +478,8 @@ Core 必须遵守的约定：
 - 以 `PluginInfo.ID` 作为运行时键（API 路径、资源挂载、缓存）
 - 以 `Platform()` 作为业务键（账号关联、调度、计费）
 - 以插件运行时返回的元信息为准，**不依赖 `plugin.yaml` 做运行时决策**
-- 渲染插槽时，优先加载插件的 `FrontendWidgets`，无 Widget 则用 `CredentialFields` 默认渲染
+- 添加账号时调用 `ValidateAccount` 验证凭证，验证失败拒绝保存
+- 账号管理 UI 统一由插件 `FrontendWidgets` 渲染，Core 不做默认表单生成
 
 ## 文档
 
