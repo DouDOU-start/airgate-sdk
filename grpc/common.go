@@ -36,12 +36,26 @@ func (b *pluginBase) Info() sdk.PluginInfo {
 	}
 
 	info := sdk.PluginInfo{
-		ID:          resp.Id,
-		Name:        resp.Name,
-		Version:     resp.Version,
-		Description: resp.Description,
-		Author:      resp.Author,
-		Type:        sdk.PluginType(resp.Type),
+		ID:           resp.Id,
+		Name:         resp.Name,
+		Version:      resp.Version,
+		SDKVersion:   resp.SdkVersion,
+		Description:  resp.Description,
+		Author:       resp.Author,
+		Type:         sdk.PluginType(resp.Type),
+		Dependencies: resp.Dependencies,
+	}
+
+	for _, cf := range resp.ConfigSchema {
+		info.ConfigSchema = append(info.ConfigSchema, sdk.ConfigField{
+			Key:         cf.Key,
+			Label:       cf.Label,
+			Type:        cf.Type,
+			Required:    cf.Required,
+			Default:     cf.DefaultValue,
+			Description: cf.Description,
+			Placeholder: cf.Placeholder,
+		})
 	}
 
 	for _, at := range resp.AccountTypes {
@@ -123,6 +137,12 @@ func (b *pluginBase) GetWebAssets() (map[string][]byte, error) {
 		assets[f.Path] = f.Content
 	}
 	return assets, nil
+}
+
+// HealthCheck 健康检查（客户端侧调用）
+func (b *pluginBase) HealthCheck(ctx context.Context) error {
+	_, err := b.plugin.HealthCheck(ctx, &pb.Empty{})
+	return err
 }
 
 // convertModels 将 proto ModelInfoProto 列表转为 SDK ModelInfo 列表

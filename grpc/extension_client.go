@@ -8,6 +8,9 @@ import (
 	pb "github.com/DouDOU-start/airgate-sdk/proto"
 )
 
+// migrateTimeout 数据库迁移的超时时间（迁移可能涉及大量数据，需要较长时间）
+const migrateTimeout = 5 * time.Minute
+
 // ExtensionGRPCClient 将 gRPC 客户端包装为 ExtensionPlugin 接口（核心侧使用）
 type ExtensionGRPCClient struct {
 	pluginBase // 嵌入公共基类
@@ -19,7 +22,7 @@ func (c *ExtensionGRPCClient) RegisterRoutes(_ sdk.RouteRegistrar) {
 }
 
 func (c *ExtensionGRPCClient) Migrate() error {
-	ctx, cancel := withTimeout()
+	ctx, cancel := context.WithTimeout(context.Background(), migrateTimeout)
 	defer cancel()
 	_, err := c.extension.Migrate(ctx, &pb.Empty{})
 	return err
@@ -43,6 +46,11 @@ func (c *ExtensionGRPCClient) BackgroundTasks() []sdk.BackgroundTask {
 		}
 	}
 	return tasks
+}
+
+// InvalidateCache 清除缓存的插件信息，下次调用时重新获取
+func (c *ExtensionGRPCClient) InvalidateCache() {
+	c.pluginBase.cachedInfo = nil
 }
 
 // HandleHTTPRequest 代理 HTTP 请求到插件（核心内部调用）
