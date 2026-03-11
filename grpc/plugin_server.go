@@ -16,12 +16,26 @@ type PluginGRPCServer struct {
 func (s *PluginGRPCServer) GetInfo(_ context.Context, _ *pb.Empty) (*pb.PluginInfoResponse, error) {
 	info := s.Impl.Info()
 	resp := &pb.PluginInfoResponse{
-		Id:          info.ID,
-		Name:        info.Name,
-		Version:     info.Version,
-		Description: info.Description,
-		Author:      info.Author,
-		Type:        string(info.Type),
+		Id:           info.ID,
+		Name:         info.Name,
+		Version:      info.Version,
+		Description:  info.Description,
+		Author:       info.Author,
+		Type:         string(info.Type),
+		SdkVersion:   info.SDKVersion,
+		Dependencies: info.Dependencies,
+	}
+
+	for _, cf := range info.ConfigSchema {
+		resp.ConfigSchema = append(resp.ConfigSchema, &pb.ConfigFieldProto{
+			Key:          cf.Key,
+			Label:        cf.Label,
+			Type:         cf.Type,
+			Required:     cf.Required,
+			DefaultValue: cf.Default,
+			Description:  cf.Description,
+			Placeholder:  cf.Placeholder,
+		})
 	}
 
 	for _, at := range info.AccountTypes {
@@ -80,6 +94,16 @@ func (s *PluginGRPCServer) Start(ctx context.Context, _ *pb.Empty) (*pb.Empty, e
 func (s *PluginGRPCServer) Stop(ctx context.Context, _ *pb.Empty) (*pb.Empty, error) {
 	if err := s.Impl.Stop(ctx); err != nil {
 		return nil, err
+	}
+	return &pb.Empty{}, nil
+}
+
+// HealthCheck 健康检查，如果插件实现了 HealthChecker 接口则调用，否则默认返回成功
+func (s *PluginGRPCServer) HealthCheck(ctx context.Context, _ *pb.Empty) (*pb.Empty, error) {
+	if checker, ok := s.Impl.(sdk.HealthChecker); ok {
+		if err := checker.HealthCheck(ctx); err != nil {
+			return nil, err
+		}
 	}
 	return &pb.Empty{}, nil
 }

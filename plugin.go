@@ -2,12 +2,8 @@ package sdk
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 )
-
-// ErrNotSupported 插件不支持某项能力时返回此错误
-var ErrNotSupported = errors.New("not supported")
 
 // Plugin 基础插件接口，所有插件必须实现
 type Plugin interface {
@@ -29,17 +25,34 @@ const (
 	PluginTypeExtension PluginType = "extension"
 )
 
+// SDKVersion 当前 SDK 版本，插件编译时自动嵌入
+const SDKVersion = "0.2.0"
+
 // PluginInfo 插件元信息
 type PluginInfo struct {
 	ID              string           `json:"id"`               // 运行时唯一标识，Core 用于 API 路径、资源挂载、缓存键
 	Name            string           `json:"name"`             // 展示名称
 	Version         string           `json:"version"`          // 语义化版本
+	SDKVersion      string           `json:"sdk_version"`      // 编译时使用的 SDK 版本，Core 用于兼容性检查
 	Description     string           `json:"description"`      // 简要描述
 	Author          string           `json:"author"`           // 作者
 	Type            PluginType       `json:"type"`             // gateway / extension
+	Dependencies    []string         `json:"dependencies"`     // 依赖的其他插件 ID（Core 确保加载顺序）
+	ConfigSchema    []ConfigField    `json:"config_schema"`    // 配置项声明（Core 可据此验证 + 生成 UI）
 	AccountTypes    []AccountType    `json:"account_types"`    // 账号类型声明
 	FrontendPages   []FrontendPage   `json:"frontend_pages"`   // 前端页面声明
 	FrontendWidgets []FrontendWidget `json:"frontend_widgets"` // 前端组件嵌入声明
+}
+
+// ConfigField 配置项声明
+type ConfigField struct {
+	Key         string `json:"key"`                    // 配置键名
+	Label       string `json:"label"`                  // 显示名称
+	Type        string `json:"type"`                   // "string", "int", "bool", "float", "duration", "password"
+	Required    bool   `json:"required"`               // 是否必填
+	Default     string `json:"default,omitempty"`       // 默认值
+	Description string `json:"description,omitempty"`   // 配置说明
+	Placeholder string `json:"placeholder,omitempty"`   // 占位提示
 }
 
 // PluginContext 核心注入给插件的上下文
@@ -54,6 +67,12 @@ type PluginContext interface {
 // ConfigWatcher 可选接口，支持配置热更新的插件实现
 type ConfigWatcher interface {
 	OnConfigUpdate(config PluginConfig) error
+}
+
+// HealthChecker 可选接口，支持健康检查的插件实现
+// 核心定期调用以探测插件存活状态
+type HealthChecker interface {
+	HealthCheck(ctx context.Context) error
 }
 
 // WebAssetsProvider 可选接口，插件实现此接口可提供前端静态资源

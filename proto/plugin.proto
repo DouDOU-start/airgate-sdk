@@ -13,6 +13,8 @@ service PluginService {
     rpc Stop(Empty) returns (Empty);
     // 获取插件的前端静态资源
     rpc GetWebAssets(Empty) returns (WebAssetsResponse);
+    // 健康检查（可选，插件未实现时返回成功）
+    rpc HealthCheck(Empty) returns (Empty);
 }
 
 // ==================== 网关服务 ====================
@@ -64,6 +66,19 @@ message PluginInfoResponse {
     repeated AccountTypeProto account_types = 7;
     repeated FrontendPageProto frontend_pages = 8;
     repeated FrontendWidgetProto frontend_widgets = 9;
+    string sdk_version = 10;                          // 插件编译时的 SDK 版本
+    repeated string dependencies = 11;                // 依赖的其他插件 ID
+    repeated ConfigFieldProto config_schema = 12;     // 配置项声明
+}
+
+message ConfigFieldProto {
+    string key = 1;
+    string label = 2;
+    string type = 3;
+    bool   required = 4;
+    string default_value = 5;
+    string description = 6;
+    string placeholder = 7;
 }
 
 message AccountTypeProto {

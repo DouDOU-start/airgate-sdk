@@ -22,6 +22,16 @@ type GatewayGRPCClient struct {
 	cachedRoutes   []sdk.RouteDefinition
 }
 
+// InvalidateCache 清除所有缓存的元数据（Platform/Models/Routes/Info），
+// 下次调用时将重新从插件获取最新数据。
+// 典型场景：ConfigWatcher.OnConfigUpdate 后调用。
+func (c *GatewayGRPCClient) InvalidateCache() {
+	c.cachedPlatform = ""
+	c.cachedModels = nil
+	c.cachedRoutes = nil
+	c.pluginBase.cachedInfo = nil
+}
+
 func (c *GatewayGRPCClient) Platform() string {
 	if c.cachedPlatform != "" {
 		return c.cachedPlatform
