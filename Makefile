@@ -2,14 +2,16 @@
 
 GO := GOTOOLCHAIN=local go
 
-.PHONY: help ci lint fmt test vet build proto clean
+.PHONY: help ci pre-commit lint fmt test vet build proto clean setup-hooks
 
 help: ## 显示帮助信息
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
 # ===================== 质量检查 =====================
 
-ci: lint test vet build ## 本地运行与 CI 完全一致的检查（提交前执行）
+ci: lint test vet build ## 本地运行与 CI 完全一致的检查
+
+pre-commit: lint vet build ## pre-commit hook 调用（跳过耗时的 race 测试）
 
 lint: ## 代码检查（需要安装 golangci-lint）
 	@if ! command -v golangci-lint > /dev/null 2>&1; then \
@@ -45,6 +47,14 @@ proto: ## 重新生成 protobuf 代码
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		plugin.proto
 	@echo "Proto 代码生成完成"
+
+# ===================== Git Hooks =====================
+
+setup-hooks: ## 安装 Git pre-commit hook
+	@echo '#!/bin/sh' > .git/hooks/pre-commit
+	@echo 'make pre-commit' >> .git/hooks/pre-commit
+	@chmod +x .git/hooks/pre-commit
+	@echo "pre-commit hook 已安装"
 
 # ===================== 清理 =====================
 
