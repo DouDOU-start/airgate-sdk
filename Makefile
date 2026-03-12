@@ -40,6 +40,13 @@ vet: ## 静态分析
 build: ## 编译检查
 	$(GO) build ./...
 
+# ===================== 前端主题 =====================
+
+theme: ## 构建前端主题包并生成 DevServer 用 theme.css
+	cd frontend && npm run build
+	node --input-type=module -e "import{generateThemeCSS}from'./frontend/dist/css.js';process.stdout.write(generateThemeCSS())" > devserver/static/theme.css
+	@echo "theme.css 已生成"
+
 # ===================== 代码生成 =====================
 
 proto: ## 重新生成 protobuf 代码

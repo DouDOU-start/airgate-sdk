@@ -3,10 +3,10 @@
 export const API = '';
 
 export const typeColors = [
-  { bg: 'var(--accent-light)', fg: 'var(--accent)' },
-  { bg: 'var(--teal-light)', fg: 'var(--teal)' },
-  { bg: 'var(--amber-light)', fg: 'var(--amber)' },
-  { bg: 'var(--violet-light)', fg: 'var(--violet)' },
+  { bg: 'var(--ag-primary-subtle)', fg: 'var(--ag-primary)' },
+  { bg: 'var(--ag-info-subtle)', fg: 'var(--ag-info)' },
+  { bg: 'var(--ag-warning-subtle)', fg: 'var(--ag-warning)' },
+  { bg: 'var(--ag-success-subtle)', fg: 'var(--ag-success)' },
 ];
 
 /** 全局插件信息（init 后赋值） */

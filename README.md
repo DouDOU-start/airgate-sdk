@@ -460,6 +460,73 @@ func (g *MyGateway) GetWebAssets() map[string][]byte {
     → 用户访问时按需加载
 ```
 
+### 主题系统 `@airgate/theme`
+
+SDK 提供统一的前端主题包 `@airgate/theme`（位于 `frontend/` 目录），作为 Core 和所有插件的颜色/样式唯一来源，支持亮色/暗色主题切换。
+
+#### 安装
+
+```json
+// 插件 package.json
+{
+  "dependencies": {
+    "@airgate/theme": "file:../../airgate-sdk/frontend"
+  }
+}
+```
+
+#### 在插件中使用
+
+```typescript
+import { cssVar, themeStyle } from '@airgate/theme';
+
+// 单个 token — 返回带 fallback 的 CSS var() 引用
+color: cssVar('text')              // → 'var(--ag-text, #e8ecf4)'
+backgroundColor: cssVar('bgSurface')  // → 'var(--ag-bg-surface, #1c2237)'
+borderRadius: cssVar('radiusMd')      // → 'var(--ag-radius-md, 10px)'
+
+// 批量生成 style 对象
+const style = themeStyle({
+  color: 'text',
+  backgroundColor: 'bgSurface',
+  borderColor: 'glassBorder',
+});
+```
+
+`cssVar()` 的参数有完整的 TypeScript 类型提示，IDE 会自动补全所有可用 token。
+
+#### 可用 token
+
+**主题 token**（随亮暗色切换变化）：
+
+| 分类 | Token | CSS 变量 |
+| --- | --- | --- |
+| 主色 | `primary` `primaryHover` `primarySubtle` `primaryGlow` | `--ag-primary` 等 |
+| 语义色 | `success` `danger` `warning` `info` + 各自 `Subtle` 变体 | `--ag-success` 等 |
+| 背景 | `bgDeep` `bg` `bgElevated` `bgSurface` `bgHover` `bgActive` | `--ag-bg-deep` 等 |
+| 边框 | `border` `borderSubtle` `borderFocus` | `--ag-border` 等 |
+| 文字 | `text` `textSecondary` `textTertiary` `textInverse` | `--ag-text` 等 |
+| 玻璃态 | `glass` `glassBorder` | `--ag-glass` 等 |
+| 阴影 | `shadowSm` `shadowMd` `shadowLg` `shadowGlow` | `--ag-shadow-sm` 等 |
+
+**静态 token**（不随主题变化）：
+
+| Token | CSS 变量 | 默认值 |
+| --- | --- | --- |
+| `radiusSm` `radiusMd` `radiusLg` `radiusXl` | `--ag-radius-*` | 6/10/14/20px |
+| `fontSans` `fontMono` | `--ag-font-*` | DM Sans / JetBrains Mono |
+| `transition` `transitionSlow` | `--ag-transition*` | 200ms / 400ms |
+| `sidebarWidth` `sidebarCollapsed` `topbarHeight` | `--ag-sidebar-*` 等 | 260/72/64px |
+
+#### 工作原理
+
+1. Core 启动时由 `ThemeProvider` 调用 `injectThemeStyle()`，在 `<head>` 中注入包含亮暗两套值的 CSS 变量
+2. `<html data-theme="dark|light">` 控制当前激活的主题
+3. 插件通过 `cssVar()` 引用变量，自带 fallback 值确保独立测试也能正常渲染
+4. 用户切换主题时，所有使用 CSS 变量的组件（Core + 插件）自动跟随
+
+> 插件也可以继续手写 `var(--ag-primary, #3b82f6)` 格式，`cssVar()` 只是提供类型安全和自动 fallback 的便捷方式。
+
 ## 目录结构
 
 ### SDK 仓库

@@ -11,7 +11,7 @@ export async function loadScheduler() {
     renderScheduler();
   } catch {
     document.getElementById('sched-stats').innerHTML =
-      '<div class="sched-chip" style="grid-column:1/-1"><div class="sched-chip-label">状态</div><div class="sched-chip-val" style="color:var(--text-muted)">不可用</div></div>';
+      '<div class="sched-chip" style="grid-column:1/-1"><div class="sched-chip-label">状态</div><div class="sched-chip-val" style="color:var(--ag-text-tertiary)">不可用</div></div>';
   }
 }
 
@@ -35,18 +35,18 @@ function renderScheduler() {
     document.getElementById('sched-stats').innerHTML = `
       <div class="sched-chip" style="grid-column:1/-1">
         <div class="sched-chip-label">模式</div>
-        <div class="sched-chip-val" style="color:var(--accent)">直连 · 所有请求发往单一账号</div>
+        <div class="sched-chip-val" style="color:var(--ag-primary)">直连 · 所有请求发往单一账号</div>
       </div>
     `;
   } else {
     document.getElementById('sched-stats').innerHTML = `
       <div class="sched-chip">
         <div class="sched-chip-label">可用账号</div>
-        <div class="sched-chip-val" style="color:${accountCount > 0 ? 'var(--green)' : 'var(--text-muted)'}">${accountCount}</div>
+        <div class="sched-chip-val" style="color:${accountCount > 0 ? 'var(--ag-success)' : 'var(--ag-text-tertiary)'}">${accountCount}</div>
       </div>
       <div class="sched-chip">
         <div class="sched-chip-label">冷却中</div>
-        <div class="sched-chip-val" style="color:${cooldownCount > 0 ? 'var(--amber)' : 'var(--green)'}">${cooldownCount}</div>
+        <div class="sched-chip-val" style="color:${cooldownCount > 0 ? 'var(--ag-warning)' : 'var(--ag-success)'}">${cooldownCount}</div>
       </div>
     `;
   }
