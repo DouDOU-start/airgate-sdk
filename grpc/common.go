@@ -101,10 +101,16 @@ func (b *pluginBase) Init(ctx sdk.PluginContext) error {
 	if ctx != nil && ctx.Config() != nil {
 		config = ctx.Config().GetAll()
 	}
+
+	// 从 config 中提取 log_level 并设置到 InitRequest（Core 通过 config 传入）
+	logLevel := config[sdk.ConfigKeyLogLevel]
+	delete(config, sdk.ConfigKeyLogLevel)
+
 	grpcCtx, cancel := withTimeout()
 	defer cancel()
 	_, err := b.plugin.Init(grpcCtx, &pb.InitRequest{
-		Config: config,
+		Config:   config,
+		LogLevel: logLevel,
 	})
 	return err
 }

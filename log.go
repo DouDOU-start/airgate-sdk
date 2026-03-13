@@ -7,6 +7,9 @@ import (
 	"sync"
 )
 
+// ConfigKeyLogLevel 约定的配置键名，Core 通过此键将日志级别传给插件
+const ConfigKeyLogLevel = "_log_level"
+
 // 当前日志格式，供 Init 时重新初始化使用
 var (
 	currentFormat string
