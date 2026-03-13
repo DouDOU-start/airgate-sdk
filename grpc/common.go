@@ -67,11 +67,12 @@ func (b *pluginBase) Info() sdk.PluginInfo {
 		}
 		for _, f := range at.Fields {
 			accountType.Fields = append(accountType.Fields, sdk.CredentialField{
-				Key:         f.Key,
-				Label:       f.Label,
-				Type:        f.Type,
-				Required:    f.Required,
-				Placeholder: f.Placeholder,
+				Key:          f.Key,
+				Label:        f.Label,
+				Type:         f.Type,
+				Required:     f.Required,
+				Placeholder:  f.Placeholder,
+				EditDisabled: f.EditDisabled,
 			})
 		}
 		info.AccountTypes = append(info.AccountTypes, accountType)

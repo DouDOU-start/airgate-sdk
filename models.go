@@ -37,11 +37,12 @@ type RouteRegistrar interface {
 
 // CredentialField 凭证字段声明
 type CredentialField struct {
-	Key         string `json:"key"`
-	Label       string `json:"label"`
-	Type        string `json:"type"` // "text", "password", "textarea", "select"
-	Required    bool   `json:"required"`
-	Placeholder string `json:"placeholder"`
+	Key          string `json:"key"`
+	Label        string `json:"label"`
+	Type         string `json:"type"` // "text", "password", "textarea", "select"
+	Required     bool   `json:"required"`
+	Placeholder  string `json:"placeholder"`
+	EditDisabled bool   `json:"edit_disabled,omitempty"` // 编辑模式下隐藏该字段
 }
 
 // AccountType 账号类型声明

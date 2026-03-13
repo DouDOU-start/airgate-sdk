@@ -47,11 +47,12 @@ func (s *PluginGRPCServer) GetInfo(_ context.Context, _ *pb.Empty) (*pb.PluginIn
 		}
 		for _, f := range at.Fields {
 			atProto.Fields = append(atProto.Fields, &pb.CredentialFieldProto{
-				Key:         f.Key,
-				Label:       f.Label,
-				Type:        f.Type,
-				Required:    f.Required,
-				Placeholder: f.Placeholder,
+				Key:          f.Key,
+				Label:        f.Label,
+				Type:         f.Type,
+				Required:     f.Required,
+				Placeholder:  f.Placeholder,
+				EditDisabled: f.EditDisabled,
 			})
 		}
 		resp.AccountTypes = append(resp.AccountTypes, atProto)

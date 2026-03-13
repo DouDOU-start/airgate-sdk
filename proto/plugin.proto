@@ -96,6 +96,7 @@ message CredentialFieldProto {
     string type = 3;
     bool   required = 4;
     string placeholder = 5;
+    bool   edit_disabled = 6; // 编辑模式下隐藏该字段
 }
 
 message FrontendPageProto {
