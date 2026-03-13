@@ -3,6 +3,7 @@ package sdk
 import (
 	"context"
 	"log/slog"
+	"net/http"
 )
 
 // Plugin 基础插件接口，所有插件必须实现
@@ -79,4 +80,10 @@ type HealthChecker interface {
 // 核心在启动插件时调用，将资源提取到本地供前端动态加载
 type WebAssetsProvider interface {
 	GetWebAssets() map[string][]byte
+}
+
+// RequestHandler 可选接口，插件实现此接口可处理自定义 HTTP 请求
+// Core 将 /api/v1/admin/plugins/:name/rpc/* 的请求透传给插件，插件自行路由
+type RequestHandler interface {
+	HandleRequest(ctx context.Context, method, path, query string, headers http.Header, body []byte) (statusCode int, respHeaders http.Header, respBody []byte, err error)
 }

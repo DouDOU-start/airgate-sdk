@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	sdk "github.com/DouDOU-start/airgate-sdk"
@@ -149,6 +150,21 @@ func (b *pluginBase) GetWebAssets() (map[string][]byte, error) {
 func (b *pluginBase) HealthCheck(ctx context.Context) error {
 	_, err := b.plugin.HealthCheck(ctx, &pb.Empty{})
 	return err
+}
+
+// HandleHTTPRequest 通用请求代理，Core 透传请求给插件
+func (b *pluginBase) HandleHTTPRequest(ctx context.Context, method, path, query string, headers http.Header, body []byte) (int, http.Header, []byte, error) {
+	resp, err := b.plugin.HandleRequest(ctx, &pb.HttpRequest{
+		Method:  method,
+		Path:    path,
+		Query:   query,
+		Headers: httpHeadersToProto(headers),
+		Body:    body,
+	})
+	if err != nil {
+		return http.StatusInternalServerError, nil, nil, err
+	}
+	return int(resp.StatusCode), protoHeadersToHTTP(resp.Headers), resp.Body, nil
 }
 
 // convertModels 将 proto ModelInfoProto 列表转为 SDK ModelInfo 列表

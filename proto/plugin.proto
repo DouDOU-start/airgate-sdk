@@ -15,6 +15,8 @@ service PluginService {
     rpc GetWebAssets(Empty) returns (WebAssetsResponse);
     // 健康检查（可选，插件未实现时返回成功）
     rpc HealthCheck(Empty) returns (Empty);
+    // 通用请求代理：Core 透传，插件自行路由（可选，插件未实现时返回 501）
+    rpc HandleRequest(HttpRequest) returns (HttpResponse);
 }
 
 // ==================== 网关服务 ====================

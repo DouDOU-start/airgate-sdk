@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"encoding/json"
 
 	sdk "github.com/DouDOU-start/airgate-sdk"
 	pb "github.com/DouDOU-start/airgate-sdk/proto"
@@ -132,4 +133,24 @@ func (s *PluginGRPCServer) GetWebAssets(_ context.Context, _ *pb.Empty) (*pb.Web
 		})
 	}
 	return resp, nil
+}
+
+// HandleRequest 通用请求代理，插件实现 RequestHandler 接口即可处理自定义请求
+func (s *PluginGRPCServer) HandleRequest(ctx context.Context, req *pb.HttpRequest) (*pb.HttpResponse, error) {
+	handler, ok := s.Impl.(sdk.RequestHandler)
+	if !ok {
+		body, _ := json.Marshal(map[string]string{"error": "plugin does not implement RequestHandler"})
+		return &pb.HttpResponse{StatusCode: 501, Body: body}, nil
+	}
+	headers := protoHeadersToHTTP(req.Headers)
+	status, respHeaders, body, err := handler.HandleRequest(ctx, req.Method, req.Path, req.Query, headers, req.Body)
+	if err != nil {
+		errBody, _ := json.Marshal(map[string]string{"error": err.Error()})
+		return &pb.HttpResponse{StatusCode: 500, Body: errBody}, nil
+	}
+	return &pb.HttpResponse{
+		StatusCode: int32(status),
+		Headers:    httpHeadersToProto(respHeaders),
+		Body:       body,
+	}, nil
 }
