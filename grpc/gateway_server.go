@@ -102,19 +102,29 @@ func httpHeadersToProto(h http.Header) map[string]*pb.HeaderValues {
 func (s *GatewayGRPCServer) Forward(ctx context.Context, req *pb.ForwardRequest) (*pb.ForwardResult, error) {
 	headers := protoHeadersToHTTP(req.Headers)
 
+	// 非流式请求：使用 bufferWriter 捕获响应体
+	bw := &bufferWriter{}
 	fwdReq := &sdk.ForwardRequest{
 		Account: buildAccount(req),
 		Body:    req.Body,
 		Headers: headers,
 		Model:   req.Model,
 		Stream:  req.Stream,
+		Writer:  bw,
 	}
 
 	result, err := s.Impl.Forward(ctx, fwdReq)
 	if err != nil {
 		return nil, err
 	}
-	return toProtoResult(result), nil
+	pbResult := toProtoResult(result)
+	// 将 bufferWriter 捕获的响应体放入 proto result
+	pbResult.Body = bw.body
+	pbResult.Headers = httpHeadersToProto(bw.Header())
+	if pbResult.StatusCode == 0 && bw.code > 0 {
+		pbResult.StatusCode = int32(bw.code)
+	}
+	return pbResult, nil
 }
 
 func (s *GatewayGRPCServer) ForwardStream(req *pb.ForwardRequest, stream pb.GatewayService_ForwardStreamServer) error {
@@ -194,5 +204,28 @@ func (w *streamWriter) Write(data []byte) (int, error) {
 }
 
 func (w *streamWriter) WriteHeader(statusCode int) {
+	w.code = statusCode
+}
+
+// bufferWriter 缓冲响应体的 http.ResponseWriter 实现（非流式 gRPC 用）
+type bufferWriter struct {
+	headers http.Header
+	code    int
+	body    []byte
+}
+
+func (w *bufferWriter) Header() http.Header {
+	if w.headers == nil {
+		w.headers = make(http.Header)
+	}
+	return w.headers
+}
+
+func (w *bufferWriter) Write(data []byte) (int, error) {
+	w.body = append(w.body, data...)
+	return len(data), nil
+}
+
+func (w *bufferWriter) WriteHeader(statusCode int) {
 	w.code = statusCode
 }

@@ -101,7 +101,7 @@ func buildProtoRequest(req *sdk.ForwardRequest) *pb.ForwardRequest {
 
 // fromProtoResult 将 proto ForwardResult 转为 SDK ForwardResult
 func fromProtoResult(r *pb.ForwardResult) *sdk.ForwardResult {
-	return &sdk.ForwardResult{
+	result := &sdk.ForwardResult{
 		StatusCode:    int(r.StatusCode),
 		InputTokens:   int(r.InputTokens),
 		OutputTokens:  int(r.OutputTokens),
@@ -110,7 +110,12 @@ func fromProtoResult(r *pb.ForwardResult) *sdk.ForwardResult {
 		Duration:      time.Duration(r.DurationMs) * time.Millisecond,
 		AccountStatus: r.AccountStatus,
 		RetryAfter:    time.Duration(r.RetryAfterMs) * time.Millisecond,
+		Body:          r.Body,
 	}
+	if len(r.Headers) > 0 {
+		result.Headers = protoHeadersToHTTP(r.Headers)
+	}
+	return result
 }
 
 func (c *GatewayGRPCClient) Forward(ctx context.Context, req *sdk.ForwardRequest) (*sdk.ForwardResult, error) {

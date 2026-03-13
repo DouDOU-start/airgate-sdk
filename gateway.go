@@ -50,4 +50,8 @@ type ForwardResult struct {
 	// 账号状态反馈（插件识别，Core 处置）
 	AccountStatus string        // "" 正常 / "rate_limited" / "disabled" / "expired"
 	RetryAfter    time.Duration // 限流时建议的等待时间
+
+	// 非流式响应（Writer 不可用时通过此字段返回）
+	Body    []byte      // 响应体
+	Headers http.Header // 响应头
 }
