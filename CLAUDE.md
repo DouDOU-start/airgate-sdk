@@ -1,11 +1,11 @@
 # airgate-sdk — Claude 开发指南
 
 > 叠加于根 `../CLAUDE.md`。SDK 为 core 与全部插件之间的**契约层**，改动影响面最大，先读「🚫 红线」。
-> 生态边界依据见 `../airgate-core/docs/architecture/ecosystem-v2.md`。
+> 生态边界依据见 `../airgate-core/docs/architecture/current/`。
 
 ## 🚫 红线
 
-- **勿将 core 产品逻辑写入 SDK**。SDK 仅放协议 ABI、插件接口、运行时桥、devkit、前端 theme；用户/账号/计费/调度等业务归 **core**（ecosystem-v2 边界审计结论）。
+- **勿将 core 产品逻辑写入 SDK**。SDK 仅放协议 ABI、插件接口、运行时桥、devkit、前端 theme；用户/账号/计费/调度等业务归 **core**。
 - **`protocol/proto/` 为 ABI**：改后须 `make proto` 重新生成并提交 `*.pb.go`，并保持向后兼容（字段只增不改不删、不复用 tag 号）；破坏性变更将打挂 core 与全部插件。
 - **`sdkgo/` 插件接口为公共 API**：`GatewayPlugin`/`ExtensionPlugin`/`MiddlewarePlugin`/宿主能力 签名变更属破坏性变更，须同步评估全部插件仓。
 - 改 `theme/` 后 `make theme`，提交生成的 `dist`/devserver CSS。
