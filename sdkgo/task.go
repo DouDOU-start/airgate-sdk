@@ -7,11 +7,15 @@ import (
 
 type TaskStatus string
 
+// 任务状态与 Core 状态机一致（7 态），迁移规则见
+// airgate-core/docs/architecture/task-state-machine.md。
 const (
 	TaskStatusPending    TaskStatus = "pending"
 	TaskStatusProcessing TaskStatus = "processing"
+	TaskStatusRetrying   TaskStatus = "retrying"
 	TaskStatusCompleted  TaskStatus = "completed"
 	TaskStatusFailed     TaskStatus = "failed"
+	TaskStatusCancelling TaskStatus = "cancelling"
 	TaskStatusCancelled  TaskStatus = "cancelled"
 )
 
@@ -60,7 +64,7 @@ type HostTask struct {
 	PublicTaskID string
 	PluginID     string
 	TaskType     string
-	Status       TaskStatus // pending, processing, completed, failed, cancelled
+	Status       TaskStatus // 7 态状态机，见 TaskStatus 常量
 	UserID       int64
 	Input        map[string]interface{}
 	Output       map[string]interface{}
