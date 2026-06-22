@@ -1,7 +1,7 @@
 # airgate-sdk — Claude 开发指南
 
 > 叠加于根 `../CLAUDE.md`。SDK 是 core 与全部插件之间的**契约层**，改动影响面最大；先读「生态边界」「🚫 红线」。
-> 生态现状权威依据：`../airgate-core/docs/architecture/current/`（契约细节见 `plugin-contract.md`）。
+> 生态现状权威依据：skill `core-dev`（契约细节见其「插件契约」`plugin-contract.md`）。
 
 ## 生态边界（动手前先归位）
 
@@ -10,6 +10,8 @@
 **SDK 负责**：core ↔ 插件之间的稳定契约——gRPC 协议 ABI（`protocol/proto/`，6 个 service）、插件作者 API（`sdkgo/`）、运行时桥（`runtimego/grpc/`）、脱核调试（`devkit/devserver/`）、前端主题（`theme/`）。
 
 **SDK 不负责（出现即越界）**：任何产品/业务逻辑——用户/账号/计费/调度/任务编排的实现归 **core**，协议转换/上游对接归**插件**。SDK 只放"契约与桥"，出现业务规则即越界。
+
+> **审计基线（2026-06，守住勿回退）**：SDK 契约层已确认**无业务逻辑泄漏**——`sdkgo`（40+ 导出符号全为接口/枚举/容器）、`protocol/proto`（6 service 均与厂商无关）、`runtimego/grpc`（纯适配，无成本计算/授权）均只放契约与桥；`Host` 为通用 `Invoke`/`InvokeStream` 通道（无业务方法名），`capability` 为扁平 method 级（授权在 Core），全仓无 `CalculateCost`/价格档/账号状态机/provider 字符串。新增能力若需在 SDK 写产品/计费/provider 逻辑即越界，应改放 Core 方法注册表 / 插件 Metadata / 插件私有 API（判断见 `docs/sdk-package-boundaries.md`）。
 
 **扩展纪律（改 SDK 前按序考虑）**：
 
@@ -53,4 +55,4 @@ make ci             # 完整 CI：lint + test + vet + build + proto-check + them
 - 插件前端样式规范（theme 用法） → `docs/plugin-style-guide.md`
 - 插件开发（消费 SDK 的一侧） → skill `develop-plugin`
 - 提交前自检 → skill `airgate-ci-check`
-- 契约现状（权威） → `../airgate-core/docs/architecture/current/plugin-contract.md`
+- 契约现状（权威） → skill `core-dev`「插件契约」（`plugin-contract.md`）
