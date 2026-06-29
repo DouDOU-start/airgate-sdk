@@ -32,7 +32,7 @@
 | 目录 | 角色 |
 |---|---|
 | `protocol/proto/` | gRPC 协议定义 = ABI（core ↔ 插件，6 service：Plugin/Gateway/Extension/Middleware/Event/CoreInvoke） |
-| `sdkgo/` | 插件作者 API：`plugin.go`（基础 `Plugin` 接口/`PluginInfo`）、`gateway.go`/`extension.go`/`middleware.go`（三类插件接口）、`host.go`（`Host`/`HostAware`）、`outcome.go`（`ForwardOutcome` 判决模型）、`capability.go`、`models.go`/`usage.go`/`task.go`/`schema.go`/`event.go`/`errors.go` |
+| `sdkgo/` | 插件作者 API：`plugin.go`（基础 `Plugin` 接口/`PluginInfo`）、`gateway.go`/`extension.go`/`middleware.go`（三类插件接口）、`host.go`（`Host`/`HostAware`）、`outcome.go`（`ForwardOutcome` 判决模型）、`capability.go`、`models.go`/`usage.go`/`task.go`/`schema.go`/`event.go`/`errors.go`、`log.go`/`log_pretty.go`（插件日志工具）、`doc.go`（包文档） |
 | `runtimego/grpc/` | 插件运行时桥：`gateway_server.go`（接口→gRPC server）、`host_client.go`（gRPC→`sdk.Host`）、`go_plugin.go`（hashicorp/go-plugin 集成） |
 | `devkit/devserver/` | 插件脱离 core 的独立调试服务 |
 | `theme/` | 前端主题包 `@doudou-start/airgate-theme` + devserver theme.css |
