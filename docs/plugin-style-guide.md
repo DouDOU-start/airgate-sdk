@@ -39,7 +39,7 @@ your-plugin/
     "dev": "vite build --watch"
   },
   "dependencies": {
-    "@doudou-start/airgate-theme": "^1.0.0",
+    "@doudou-start/airgate-theme": "^0.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

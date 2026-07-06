@@ -355,18 +355,9 @@ import {
 
 完整样式规则见 [插件前端样式规范](docs/plugin-style-guide.md)。
 
-网关插件账号相关 UI 建议使用这些稳定插槽。Core 仍提供通用账号列表和详情框架，
-插件只补平台差异片段；需要完整独立页面时使用 `FrontendPages`。devserver
-可直接预览 `account-create` / `account-edit`，其他插槽由 Core 对应页面加载。
+网关插件账号相关 UI 建议使用稳定插槽（`account-identity` / `account-create` / `account-edit` / `account-usage-window` / `usage-metric-detail` / `usage-cost-detail`）。Core 仍提供通用账号列表和详情框架，插件只补平台差异片段；需要完整独立页面时使用 `FrontendPages`。devserver 可直接预览 `account-create` / `account-edit`，其他插槽由 Core 对应页面加载。
 
-| Slot | 用途 |
-|---|---|
-| `account-identity` | 账号标识、套餐、状态等平台差异信息 |
-| `account-create` | 添加账号 |
-| `account-edit` | 编辑账号 |
-| `account-usage-window` | 账号用量窗口、额度、重置时间等平台差异信息 |
-| `usage-metric-detail` | 使用记录里的计量明细，例如 token、模型、思考层级、分辨率、图片张数 |
-| `usage-cost-detail` | 使用记录里的费用明细，例如单价、账号成本、Core 倍率、用户扣费 |
+各插槽语义的**权威定义**见 [SDK 包边界规范「网关前端边界」](docs/sdk-package-boundaries.md)（单一事实源，本 README 不重复维护插槽表）。
 
 ## 开发命令
 

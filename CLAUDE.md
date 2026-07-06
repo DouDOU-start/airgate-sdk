@@ -44,7 +44,7 @@ make proto          # 改 proto 后重新生成（装固定版本 protoc）
 make proto-check    # 校验 proto 生成代码无漂移
 make theme          # 构建 theme 包 + devserver theme.css
 make test           # Go 测试（race + coverage）
-make ci             # 完整 CI：lint + test + vet + build + proto-check + theme-package-check + theme-check
+make ci             # 提交前完整自检（链路见 skill airgate-ci-check）
 ```
 
 提交前运行 `make ci`，proto/theme 漂移检查在此把关。

@@ -8,7 +8,7 @@ import (
 type TaskStatus string
 
 // 任务状态与 Core 状态机一致（7 态），迁移规则见
-// airgate-core/docs/architecture/task-state-machine.md。
+// monorepo 根仓 skill core-dev 的 task.md（.claude/skills/core-dev/task.md）。
 const (
 	TaskStatusPending    TaskStatus = "pending"
 	TaskStatusProcessing TaskStatus = "processing"
